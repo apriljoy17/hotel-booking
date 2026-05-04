@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Six Rooms Booking System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .room-filter {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .room-filter:hover, .room-filter.active {
+            border-color: #ff6b6b;
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .date-range {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .date-input {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .search-btn {
+            padding: 12px 25px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .search-btn:hover {
+            background: #e55a5a;
+            transform: translateY(-2px);
+        }
+
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .room-card {
+            border: 2px solid #eee;
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .room-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .room-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+        }
+
+        .room-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .room-status {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .status-available { background: #4ecdc4; color: white; }
+        .status-booked { background: #ff6b6b; color: white; }
+        .status-partial { background: #feca57; color: #333; }
+
+        .calendar {
+            padding: 20px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .month-year {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            text-align: center;
+        }
+
+        .day-header {
+            font-weight: bold;
+            color: #666;
+            padding: 10px 5px;
+        }
+
+        .day {
+            padding: 15px 5px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .day:hover {
+            background: #f0f0f0;
+        }
+
+        .day.available { 
+            background: #4ecdc4; 
+            color: white;
+            font-weight: bold;
+        }
+
+        .day.booked { 
+            background: #ff6b6b; 
+            color: white;
+            position: relative;
+        }
+
+        .day.booked::after {
+            content: '✓';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 12px;
+        }
+
+        .day.other-month { 
+            color: #ccc; 
+            background: transparent;
+        }
+
+        .booking-form {
+            padding: 20px 30px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        .book-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .book-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(78, 205, 196, 0.3);
+        }
+
+        .book-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .date-range {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .rooms-grid {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏨 Six Rooms Booking</h1>
+            <p>Rosal • Rosas • Ilang-ilang • Hasmin • Sampaguita • Gumamela</p>
+        </div>
+
+        <div class="controls">
+            <div class="room-filter active" data-room="all">All Rooms</div>
+            <div class="room-filter" data-room="rosal">Rosal</div>
+            <div class="room-filter" data-room="rosas">Rosas</div>
+            <div class="room-filter" data-room="ilang-ilang">Ilang-ilang</div>
+            <div class="room-filter" data-room="hasmin">Hasmin</div>
+            <div class="room-filter" data-room="sampaguita">Sampaguita</div>
+            <div class="room-filter" data-room="gumamela">Gumamela</div>
+            
+            <div class="date-range">
+                <input type="date" id="checkin" class="date-input">
+                <input type="date" id="checkout" class="date-input">
+                <button class="search-btn" onclick="searchAvailability()">Search</button>
+            </div>
+        </div>
+
+        <div class="rooms-grid" id="roomsGrid">
+            <!-- Rooms will be generated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        const rooms = {
+            rosal: {
+                name: 'Rosal',
+                bookings: [
+                    { start: '2024-01-15', end: '2024-01-18' },
+                    { start: '2024-01-25', end: '2024-01-28' }
+                ]
+            },
+            rosas: {
+                name: 'Rosas',
+                bookings: [
+                    { start: '2024-01-20', end: '2024-01-23' }
+                ]
+            },
+            'ilang-ilang': {
+                name: 'Ilang-ilang',
+                bookings: [
+                    { start: '2024-01-10', end: '2024-01-12' },
+                    { start: '2024-01-28', end: '2024-01-30' }
+                ]
+            },
+            hasmin: {
+                name: 'Hasmin',
+                bookings: []
+            },
+            sampaguita: {
+                name: 'Sampaguita',
+                bookings: [
+                    { start: '2024-01-22', end: '2024-01-25' }
+                ]
+            },
+            gumamela: {
+                name: 'Gumamela',
+                bookings: [
+                    { start: '2024-01-17', end: '2024-01-20' },
+                    { start: '2024-01-30', end: '2024-02-02' }
+                ]
+            }
+        };
+
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let selectedRoom = 'all';
+
+        function init() {
+            generateRooms();
+            setupFilters();
+            setDefaultDates();
+        }
+
+        function setDefaultDates() {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            document.getElementById('checkin').value = today.toISOString().split('T')[0];
+            document.getElementById('checkout').value = tomorrow.toISOString().split('T')[0];
+        }
+
+        function generateRooms() {
+            const grid = document.getElementById('roomsGrid');
+            grid.innerHTML = '';
+
+            Object.keys(rooms).forEach(roomKey => {
+                const room = rooms[roomKey];
+                if (selectedRoom !== 'all' && selectedRoom !== roomKey) return;
+
+                const roomCard = createRoomCard(roomKey, room);
+                grid.appendChild(roomCard);
+            });
+        }
+
+        function createRoomCard(roomKey, room) {
+            const div = document.createElement('div');
+            div.className = 'room-card';
+            div.dataset.room = roomKey;
+
+            const availability = getAvailabilityStatus(room.bookings);
+            const statusClass = availability === 'Available' ? 'status-available' : 
+                               availability === 'Partially Available' ? 'status-partial' : 'status-booked';
+
+            div.innerHTML = `
+                <div class="room-header">
+                    <div class="room-name">${room.name}</div>
+                    <div class="room-status ${statusClass}">${availability}</div>
+                </div>
+                <div class="calendar">
+                    <div class="calendar-header">
+                        <button class="nav-btn" onclick="prevMonth('${roomKey}')">‹</button>
+                        <div class="month-year" id="monthYear_${roomKey}"></div>
+                        <button class="nav-btn" onclick="nextMonth('${roomKey}')">›</button>
+                    </div>
+                    <div class="calendar-grid" id="calendar_${roomKey}">
+                        <!-- Calendar days generated by generateCalendar -->
+                    </div>
+                </div>
+                <div class="booking-form">
+                    <div class="form-group">
+                        <label>Guest Name</label>
+                        <input type="text" id="guest_${roomKey}" placeholder="Enter guest name">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="phone_${roomKey}" placeholder="Enter phone number">
+                    </div>
+                    <button class="book-btn" onclick="bookRoom('${roomKey}')">Book Room</button>
+                </div>
+            `;
+
+            setTimeout(() => {
+                updateMonthYear(roomKey);
+                generateCalendar(roomKey, room.bookings);
+            }, 100);
+
+            return div;
+        }
+
+        function getAvailabilityStatus(bookings) {
+            if (bookings.length === 0) return 'Available';
+            if (bookings.length > 2) return 'Mostly Booked';
+            return 'Partially Available';
+        }
+
+        function generateCalendar(roomKey, bookings) {
+            const calendar = document.getElementById(`calendar_${roomKey}`);
+            if (!calendar) return;
+
+            calendar.innerHTML = '';
+            
+            // Day headers
+            ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.className = 'day-header';
+                dayHeader.textContent = day;
+                calendar.appendChild(dayHeader);
+            });
+
+            // Calendar days
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'day';
+                dayDiv.textContent = date.getDate();
+
+                if (date.getMonth() !== currentMonth) {
+                    dayDiv.classList.add('other-month');
+                } else {
+                    const isBooked = isDateBooked(date, bookings);
+                    dayDiv.classList.add(isBooked ? 'booked' : 'available');
+                    
+                    dayDiv.onclick = () => selectDate(roomKey, date);
+                }
+
+                calendar.appendChild(dayDiv);
+            }
+        }
+
+        function isDateBooked(date, bookings) {
+            return bookings.some(booking => {
+                const start = new Date(booking.start);
+                const end = new Date(booking.end);
+                return date >= start && date <= end;
+            });
+        }
+
+        function updateMonthYear(roomKey) {
+            const monthYear = document.getElementById(`monthYear_${roomKey}`);
+            if (monthYear) {
+                const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+                monthYear.textContent = `${months[currentMonth]} ${currentYear}`;
+            }
+        }
+
+        function prevMonth(roomKey) {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            generateCalendar(roomKey, rooms[roomKey].bookings);
+            updateMonthYear(roomKey);
+        }
+
+        function nextMonth(roomKey) {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            generateCalendar(roomKey, rooms[roomKey].bookings);
+            updateMonthYear(roomKey);
+        }
+
+        function selectDate(roomKey, date) {
+            const checkin = document.getElementById('checkin');
+            const checkout = document.getElementById('checkout');
+            
+            if (!checkin.value) {
+                checkin.value = date.toISOString().split('T')[0];
+            } else if (!checkout.value) {
+                checkout.value = date.toISOString().split('T')[0];
+            }
+        }
+
+        function setupFilters() {
+            document.querySelectorAll('.room-filter').forEach(filter => {
+                filter.onclick = () => {
+                    document.querySelectorAll('.room-filter').forEach(f => f.classList.remove('active'));
+                    filter.classList.add('active');
+                    selectedRoom = filter.dataset.room;
+                    generateRooms();
+                };
+            });
+        }
+
+        function searchAvailability() {
+            const checkin = document.getElementById('checkin').value;
+            const checkout = document.getElementById('checkout').value;
+            
+            if (!checkin || !checkout) {
+                alert('Please select check-in and check-out dates');
+                return;
+            }
+
+            // Update availability status based on search
+            Object.keys(rooms).forEach(roomKey => {
+                const room = rooms[roomKey];
+                const isAvailable = isRoomAvailable(roomKey, checkin, checkout);
+                
+                // Update room status (you can enhance this)
+                console.log(`${room.name}: ${isAvailable ? 'Available' : 'Not Available'} for ${checkin} to ${checkout}`);
+            });
+        }
+
+        function isRoomAvailable(roomKey, checkin, checkout) {
+            const room = rooms[roomKey];
+            const checkinDate = new Date(checkin);
+            const checkoutDate = new Date(checkout);
+            
+            return !room.bookings.some(booking => {
+                const start = new Date(booking.start);
+                const end = new Date(booking.end);
+                return (checkinDate <= end && checkoutDate >= start);
+            });
+        }
+
+        function bookRoom(roomKey) {
+            const guest = document.getElementById(`guest_${roomKey}`).value;
+            const phone = document.getElementById(`phone_${roomKey}`).value;
+            const checkin = document.getElementById('checkin').value;
+            const checkout = document.getElementById('checkout').value;
+
+            if (!guest || !phone || !checkin || !checkout) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            if (!isRoomAvailable(roomKey, checkin, checkout)) {
+                alert('Room not available for selected dates');
+                return;
+            }
+
+            // Add booking
+            rooms[roomKey].bookings.push({ start: checkin, end: checkout });
+            
+            alert(`✅ ${rooms[roomKey].name} booked successfully!\nGuest: ${guest}\nDates: ${checkin} to ${checkout}`);
+            
+            // Refresh display
+            generateRooms();
+        }
+
+        // Initialize app
+        init();
+    </script>
+</body>
+</html>
